@@ -11,6 +11,20 @@ const refs = {
   loadMoreBtn: document.querySelector('.load-more'),
 };
 
+class SearchRequest {
+  constructor() {
+    this.searchQuery = '';
+  }
+  get query() {
+    return this.searchQuery;
+  }
+  set query(newQuery) {
+    this.searchQuery = newQuery;
+  }
+}
+
+const searchRequest = new SearchRequest();
+
 const API_KEY = '37001308-90f28619d2b1daf4121817c5e';
 const BASE_URL = 'https://pixabay.com/api/';
 
@@ -35,32 +49,45 @@ async function onFormSubmit(e) {
   // let inputValue = '';
   try {
     e.preventDefault();
-    const inputValue = refs.input.value;
-    console.log(inputValue);
-    if (inputValue !== '') {
-      const response = await fetchImg(inputValue, pages);
+    if (searchRequest.query !== refs.input.value) {
+      refs.gallery.innerHTML = '';
+      refs.loadMoreBtn.style.display = 'none';
+    }
+    searchRequest.query = refs.input.value;
+    // const inputValue = e.currentTarget.value;
+    console.log(searchRequest.query);
+    if (searchRequest.query !== '') {
+      const response = await fetchImg(searchRequest.query, pages);
       console.log(response);
       if (response.length === 0 || response.totalHits === 0) {
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
+        refs.loadMoreBtn.style.display = 'none';
+        refs.gallery.innerHTML = '';
       } else {
-        Notiflix.Notify.success(
-          `Hooray! We found ${response.totalHits} images`
-        );
-
-        pages += 1;
+        if (pages === 1) {
+          Notiflix.Notify.success(
+            `Hooray! We found ${response.totalHits} images`
+          );
+        }
 
         imgsMarkup(response.hits);
 
-        refs.loadMoreBtn.style.display = 'block';
+        if (response.hits.length < 40) {
+          refs.loadMoreBtn.style.display = 'none';
+        } else {
+          refs.loadMoreBtn.style.display = 'block';
+        }
         gallerySimpleLightbox.refresh();
+        pages += 1;
       }
     } else {
       Notiflix.Notify.failure('Please fill in the request');
     }
   } catch (error) {
     console.log(error);
+    refs.gallery.innerHTML = '';
   }
 }
 
@@ -73,7 +100,7 @@ function imgsMarkup(imgs) {
       <img class="gallery__image" src="${img.webformatURL}" alt="${img.tags}" />
    </a>
 </div>
-      
+
   <div class="info">
     <p class="info-item">
       <b>Likes: ${img.likes}</b>
