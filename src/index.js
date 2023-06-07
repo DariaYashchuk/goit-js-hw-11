@@ -11,15 +11,17 @@ const refs = {
   loadMoreBtn: document.querySelector('.load-more'),
 };
 
+let pages = 1;
 class SearchRequest {
   constructor() {
     this.searchQuery = '';
   }
   get query() {
-    return this.searchQuery;
+    return this.searchQuery.trim();
   }
   set query(newQuery) {
     this.searchQuery = newQuery;
+    // pages = 1;
   }
 }
 
@@ -29,8 +31,6 @@ const API_KEY = '37001308-90f28619d2b1daf4121817c5e';
 const BASE_URL = 'https://pixabay.com/api/';
 
 let gallerySimpleLightbox = new SimpleLightbox('.gallery a');
-
-let pages = 1;
 
 async function fetchImg(inputValue, pages) {
   try {
@@ -52,6 +52,7 @@ async function onFormSubmit(e) {
     if (searchRequest.query !== refs.input.value) {
       refs.gallery.innerHTML = '';
       refs.loadMoreBtn.style.display = 'none';
+      pages = 1;
     }
     searchRequest.query = refs.input.value;
     // const inputValue = e.currentTarget.value;
@@ -88,6 +89,8 @@ async function onFormSubmit(e) {
   } catch (error) {
     console.log(error);
     refs.gallery.innerHTML = '';
+    refs.loadMoreBtn.style.display = 'none';
+    Notiflix.Notify.failure('Oops! Something went wrong. Please try again.');
   }
 }
 
